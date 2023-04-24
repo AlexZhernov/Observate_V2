@@ -1,4 +1,4 @@
-# Observate - Network Aware by Handyscripts
+# Observate - Network Aware
 
 Quickly visualise a single NMAP XML scan.
 
