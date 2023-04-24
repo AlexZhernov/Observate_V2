@@ -1,0 +1,96 @@
+{% extends 'base.html' %} 
+
+{% block content %}
+<script>
+    $(document).ready(function() {
+
+        function fetchFiles() {
+            $.get("/files", function(data) {
+                $("#files-table tbody").empty();
+
+                for (var i = 0; i < data.length; i++) {
+                    var filename = data[i];
+
+                    var row = '<tr>' +
+                        '<td><a href="/scan/' + filename + '">' + filename + '</a></td>' +
+                        '<td>' +
+                        '<form class="delete-form" data-filename="' + filename + '" style="display:inline;">' +
+                        '<input type="hidden" name="_method" value="DELETE">' +
+                        '<button type="button" class="btn btn-danger btn-sm delete-button">Delete</button>' +
+                        '</form>' +
+                        '</td>' +
+                        '</tr>';
+
+                    $("#files-table tbody").append(row);
+                }
+
+                // click event listener
+                $(".delete-button").on("click", function() {
+                    var form = $(this).closest(".delete-form");
+                    var filename = form.data("filename");
+                    deleteFile(filename);
+                });
+            });
+        }
+
+
+        fetchFiles();
+
+
+        function deleteFile(filename) {
+            $.ajax({
+                url: "/delete/" + filename,
+                type: "POST",
+                success: function() {
+                    fetchFiles();
+                }
+            });
+        }
+    });
+</script>
+
+
+<h1 class="display-4">Observate</h1>
+<div class="jumbotron">
+    <h2>Upload file</h2>
+	<p>Command to generate nmap xml output file:</p>
+
+    <div class="alert alert-secondary" role="alert" style="display:inline-block;">
+        <codes style="color: black;">nmap -oX out.xml -O &lt;options&gt; &lt;hosts&gt;</code>
+    </div>
+    {% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        Error: {{ error_message }}
+    </div>
+    {% endif %}
+
+    <form action="/upload" method="POST" enctype="multipart/form-data">
+        <div class="custom-file mb-3">
+            <input type="file" class="custom-file-input" id="customFile" name="file">
+            <label class="custom-file-label" for="customFile">Choose file</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+
+        <script>
+            // Show name of the file on select
+            $(".custom-file-input").on("change", function() {
+                var fileName = $(this).val().split("\\").pop();
+                $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+            });
+        </script>
+    </form>	
+    <br>
+    <br>
+    <table id="files-table" class="table">
+        <thead class="thead-dark">
+          <tr>
+            <th>Click to view scan results</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        </tbody>
+      </table>
+
+</div>
+{% endblock %}
