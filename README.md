@@ -1,43 +1,39 @@
-# Observate - Network Aware
+# Observate  V2
 
-Quickly visualise a single NMAP XML scan.
+Quickly Perform, Visualize and manage Nmap scans.
+
+__Perform Nmap scans and output results to a file__
+![Network Scan](/media/scanview.png)
+
+__Upload Nmap XML and manage previously performed scans__
+![Network Scan History](/media/history.png)
 
 __Create network graphs easily, and quickly see which hosts have the biggest attack surface.__
 ![Network Scan Graph](/media/graph.png)
 
-__View the scanned devices, their open ports and potential Operating System matches.__
-![Network Devices List](/media/list.png)
+__View the scanned devices their potential Operating System matches, open ports and look up Vulners.com datbase for intersting entries.__
+![Network Devices List](/media/Vulners.png)
 
-__To create XML output from an nmap scan with OS detection:__
+__To perform Nmap scan with OS detection and service detection:__
 ```
-nmap -oX out.xml -O <hosts>
-```
-
-## Quick Start
-```
-docker run -d --name observate -p 80:80 handyscripts/observate
+Target: <your hosts> Options: -sV -O
 ```
 
 ## Docker Build and Deploy
 
 ```
-docker build -t observate .
-docker run -d --name observate -p 80:80 observate
+docker build -t observatev2 .
+docker run -d --name observatev2 -p 80:80 observate2
+
+OR, For better performance in Network scans
+
+docker run -d --name observatev2 --network=host observate2
+
 ```
 
-## Development 
-
-```
-cd app
-python3 -m venv venv
-source venv/bin/activate
-pip3 install -r requirements.txt
-python main.py
-```
 
 ## Future goals:
 * Find the difference between two scans
-* Continuously search for changes in your network over time.
-* Allow for upload of PCAP files
-* Build a network profile with a combination of scans and scan types
+* Ditch SocketIO for updating scan progress in favor of AJAX client side requests
+* Scan all ports for Vulners database entries simultaneously
 * Include support for traceroute network hops in NMAP
