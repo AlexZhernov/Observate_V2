@@ -105,6 +105,5 @@ venv.bak/
 
 # other
 *.swp
-*.xml
 *.sh
 .DS_Store
