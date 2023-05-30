@@ -39,9 +39,9 @@ docker run -d --name observatev2 --network=host observate2
 * Include support for traceroute network hops in NMAP
 
 ## Credits:
-__Observate_
+_Observate_
 [Project this work is based on](https://github.com/handyscripts/Observate)
 
-__Nmap-xml-vulners_
+_Nmap-xml-vulners_
 [Inspiration for the datbase search script](https://github.com/9p4/nmap-xml-vulners)
 
