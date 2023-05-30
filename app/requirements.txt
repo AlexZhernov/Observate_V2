@@ -1,5 +1,5 @@
 wheel==0.38.1
-python-libnmap==0.7.0
+python-libnmap==0.7.3
 Flask==2.2.5
 Flask-FontAwesome==0.1.4
 requests
