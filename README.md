@@ -43,5 +43,5 @@ _Observate_
 [Project this work is based on](https://github.com/handyscripts/Observate)
 
 _Nmap-xml-vulners_
-[Inspiration for the datbase search script](https://github.com/9p4/nmap-xml-vulners)
+[Inspiration for the database search script](https://github.com/9p4/nmap-xml-vulners)
 
