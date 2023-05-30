@@ -39,8 +39,7 @@ def getVulners(name, version):
     try:
       requests.get('https://vulners.com')
     except:
-      logging.fatal("No connection to https://vulners.com. Quitting!")
-      sys.exit(1)
+      logging.fatal("No connection to https://vulners.com")
 
     results = getResults(name, version)
     if results is not None:
@@ -48,15 +47,16 @@ def getVulners(name, version):
             for i in range(len(results['data']['search'])):
                 issue = results['data']['search'][i]
                 outputList.append(addIssue( name, version,
+                                            issue['_source']['cvelist'],
                                             issue['_source']['cvss']['score'],
                                             issue['_source']['href'],
                                             issue['_source']['description']))
     return outputList
 
 
-def addIssue(name, version, score, link, body):
-    output = [score, link, body]
+def addIssue(name, version, cve, score, link, body):
+    output = [cve, score, link, body]
     print("-=_=-"*30)
     print(name +" With assumed version "+ version)
-    print(str(output[0])+ " CVE score with more info at: "+ output[1].rstrip()+ output[2].rstrip())
+    print(str(output[1])+ " CVE score with more info at: "+ output[2].rstrip()+ output[3].rstrip())
     return output

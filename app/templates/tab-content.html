@@ -4,44 +4,51 @@
 	}
 
 	.expanded-row {
-    display: none;
-  }
+		display: none;
+	}
 </style>
 <script>
-$(document).ready(function() {
-  $(".expandable-row").click(function() {
-    var name = $(this).find("td:eq(4)").text();
-    var version = $(this).find("td:eq(5)").text();
-    var expandedRow = $(this).next(".expanded-row");
+	$(document).ready(function () {
+		$(".expandable-row").click(function () {
+			var name = $(this).find("td:eq(4)").text();
+			var version = $(this).find("td:eq(5)").text();
+			var expandedRow = $(this).next(".expanded-row");
 
-    expandedRow.slideToggle();
-   
-    $.ajax({
-      url: "/scanv",
-      type: "POST",
-      data: {name: name, version: version},
-      success: function(data) {
-        var html = '';
-        for (var i = 0; i < data.length; i++) {
-          var obj = data[i];
+			/* If content is hidden, sends request to server to search for vulnerabilities. 
+			After recieving creates a large row with the output*/
+			if (expandedRow.find(".additional-content").is(':hidden') == true) {
+				$.ajax({
+					url: "/scanv",
+					type: "POST",
+					data: { name: name, version: version },
+					success: function (data) {
+						var html = '';
+						for (var i = 0; i < data.length; i++) {
+							var obj = data[i];
 
-          html += '<strong>Score:</strong> ' + obj[0] + '<br>' +
-                  '<strong>Info:</strong> ' + obj[2] + '<br>' +
-                  '<strong>More at:</strong> ' + '<a href="' + obj[1] + '">' + obj[1] + '</a>' +
-                  '<br>'+'<br>'; 
-        }
-		if (data.length == 0){html='<strong>Lookup returned no results</strong> '}
-        expandedRow.find(".additional-content").html(html); 
-      },
-      error: function(error) {
-        console.log(error);
-      }
-    });
-  });
-});
-  </script>
+							html += '<strong>CVE:</strong> ' + obj[0] + '<br>' +
+								'<strong>Score:</strong> ' + obj[1] + '<br>' +
+								'<strong>Info:</strong> ' + obj[3] + '<br>' +
+								'<strong>More at:</strong> ' + '<a href="' + obj[2] + '">' + obj[2] + '</a>' +
+								'<br>' + '<br>';
+						}
+						if (data.length == 0) { html = '<strong>No data returned</strong> ' }
+						expandedRow.find(".additional-content").html(html);
+					},
+					error: function (error) {
+						console.log(error);
+					}
+				});
+			};
+			expandedRow.slideToggle();
+		});
+		
+	});
+
+</script>
 
 <div class="tab-content">
+	
 	<div id="menu_all" class="container tab-pane active">
 		<br> {% if hosts == {} %}
 		<p>No hosts found.</p>
@@ -57,100 +64,102 @@ $(document).ready(function() {
 			</thead>
 			<tbody>
 				{% for key, data in hosts.items() %}
-					{% if data["is_up"] %}								
-						{% if data["services"] or data["osmatch"] %}								
-							<tr style="cursor: pointer;" data-toggle="collapse" data-target="#key-{{ key.replace('.', '-') }}" class="accordion-toggle">
-						{% else %}
-							<tr  data-toggle="collapse" data-target="#key-{{ key.replace('.', '-') }}" class="accordion-toggle">
-						{% endif %}
-							<td>{{ key }}</td>
-							<td>{{ data["hostnames"][0] }}</td>
-							{% if data["osmatch"] %}
-							<td>{{ data["osmatch"][0][0] }}</td>
+				{% if data["is_up"] %}
+				{% if data["services"] or data["osmatch"] %}
+				<tr style="cursor: pointer;" data-toggle="collapse" data-target="#key-{{ key.replace('.', '-') }}"
+					class="accordion-toggle">
 					{% else %}
-						<td></td>
+				<tr data-toggle="collapse" data-target="#key-{{ key.replace('.', '-') }}" class="accordion-toggle">
+					{% endif %}
+					<td>{{ key }}</td>
+					<td>{{ data["hostnames"][0] }}</td>
+					{% if data["osmatch"] %}
+					<td>{{ data["osmatch"][0][0] }}</td>
+					{% else %}
+					<td></td>
 					{% endif %}
 					{% if data["services"] %}
-						<td><i class="fas fa-check"></i></td>
+					<td><i class="fas fa-check"></i></td>
 					{% else %}
-						<td><i class="fas fa-times"></td>
+					<td><i class="fas fa-times"></td>
 					{% endif %}
-							</tr>
-							{% if data["services"] or data["osmatch"] %}
-								<tr> 
-									<td colspan="6" class="hiddenRow">
-										<div class="accordian-body collapse" id="key-{{ key.replace('.', '-') }}">
+				</tr>
+				{% if data["services"] or data["osmatch"] %}
+				<tr>
+					<td colspan="6" class="hiddenRow">
+						<div class="accordian-body collapse" id="key-{{ key.replace('.', '-') }}">
 
-											<div class="card">
-												<div class="card-header">
-													Details
+							<div class="card">
+								<div class="card-header">
+									Details
+								</div>
+								{% if data["services"] %}
+								<div class="card-body">
+									<table style="width:100%">
+										<thead>
+											<tr class="table-active">
+												{% for key, value in data["services"][0].items() %}
+												<th>{{ key }}</th>
+												{% endfor %}
+											</tr>
+										</thead>
+										{% for service in data["services"] %}
+										<tr class="expandable-row">
+											{% for _, value in service.items() %}
+											<td>{{ value }}</td>
+											{% endfor %}
+											
+										</tr>
+										<tr class="expanded-row">
+											<td colspan="6">
+												<div class="additional-content">
+
 												</div>
-												{% if data["services"] %}								
-													<div class="card-body">
-														<table style="width:100%">
-															<thead>
-																<tr class="table-active">
-																	{% for key, value in data["services"][0].items() %}
-																		<th>{{ key }}</th>
-																	{% endfor %}
-																</tr>
-															</thead>
-															{% for service in data["services"] %}
-																<tr class="expandable-row">
-																	{% for _, value in service.items() %}
-																	<td>{{ value }}</td>
-																	{% endfor %}
-																</tr>
-																<tr class="expanded-row">
-																	<td colspan="6">
-																		<div class="additional-content">
-
-																		</div>
-																	</td>
-																  </tr>
-															{% endfor %}
-														</table>										
-													</div>
-												{% endif %}
-												{% if data["osmatch"] %}
-													<div class="card-body">
-														<table style="width:100%">
-															<thead>
-																<tr class="table-active">
-																	<th>Operating System Match</th>
-																	<th>Accuracy (%)</th>
-																</tr>
-															</thead>
-															{% for osmatch, accuracy in data["osmatch"] %}
-																<tr>
-																	<td>{{ osmatch }}</td>
-																	<td>{{ accuracy }}</td>
-																</tr>
-															{% endfor %}
-														</table>										
-													</div>								
-												{% endif %}
-											</div>
-										</div>
-									</td>					
-								</tr>
-						{% endif %}
-					{% endif %}
+											</td>
+										</tr>
+										{% endfor %}
+									</table>
+								</div>
+								{% endif %}
+								{% if data["osmatch"] %}
+								<div class="card-body">
+									<table style="width:100%">
+										<thead>
+											<tr class="table-active">
+												<th>Operating System Match</th>
+												<th>Accuracy (%)</th>
+											</tr>
+										</thead>
+										{% for osmatch, accuracy in data["osmatch"] %}
+										<tr>
+											<td>{{ osmatch }}</td>
+											<td>{{ accuracy }}</td>
+										</tr>
+										{% endfor %}
+									</table>
+								</div>
+								{% endif %}
+							</div>
+						</div>
+					</td>
+				</tr>
+				{% endif %}
+				{% endif %}
 				{% endfor %}
 			</tbody>
 		</table>
 		{% endif %}
-			</div>
-			<div id="menu_about" class="container tab-pane fade">
-				<br>
-				<table class="table table-striped">
-					<tbody>
-						{% for key, value in stats.items() %}
-						<tr>
-							<th>{{ key }}</th>
-							<td>{{ value }}</td>
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
+	</div>
+	<div id="menu_about" class="container tab-pane fade">
+		<br>
+		<table class="table table-striped">
+			<tbody>
+				{% for key, value in stats.items() %}
+				<tr>
+					<th>{{ key }}</th>
+					<td>{{ value }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>

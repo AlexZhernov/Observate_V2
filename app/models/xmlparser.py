@@ -33,7 +33,6 @@ def get_scan_data(filename):
                 serv["product"] = service.cpelist[0].get_product()
                 serv["version"] = service.cpelist[0].get_version()
                 serv["cpe"] = service.cpelist[0]
-                #vulns = getVulners(service.cpelist[0].get_product(), 1.0 if service.cpelist[0].get_version() is None else service.cpelist[0].get_version())
             else:
                 serv["cpe"] = " "
             

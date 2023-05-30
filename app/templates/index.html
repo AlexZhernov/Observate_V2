@@ -1,47 +1,66 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 
 {% block content %}
 <script>
-    $(document).ready(function() {
-
+    $(document).ready(function () {
+        
+        /* Gets list of files, clears the table, inserts new rows into table */ 
         function fetchFiles() {
-            $.get("/files", function(data) {
+            $.get("/files", function (data) {
                 $("#files-table tbody").empty();
-
                 for (var i = 0; i < data.length; i++) {
                     var filename = data[i];
-
                     var row = '<tr>' +
                         '<td><a href="/scan/' + filename + '">' + filename + '</a></td>' +
-                        '<td>' +
+                        '<td style="text-align: right;">' +
                         '<form class="delete-form" data-filename="' + filename + '" style="display:inline;">' +
                         '<input type="hidden" name="_method" value="DELETE">' +
                         '<button type="button" class="btn btn-danger btn-sm delete-button">Delete</button>' +
+                        '<button style = "margin-left: 1%" type="button" class="btn btn-secondary btn-sm view-raw-button" data-toggle="modal" data-target="#view-raw-modal">View raw</button>' +
                         '</form>' +
                         '</td>' +
                         '</tr>';
 
                     $("#files-table tbody").append(row);
                 }
-
-                // click event listener
-                $(".delete-button").on("click", function() {
+                $(".delete-button").on("click", function () {
                     var form = $(this).closest(".delete-form");
                     var filename = form.data("filename");
                     deleteFile(filename);
                 });
+
+                $(".view-raw-button").on("click", function () {
+                    var form = $(this).closest(".delete-form");
+                    var filename = form.data("filename");
+                    getFile(filename)
+                });
+
             });
+
         }
 
-
         fetchFiles();
+
+        function getFile(filename) {
+            $.ajax({
+                url: "/raw/" + filename,
+                type: "GET",
+                dataType: "text",
+                success: function (data) {
+                    $("#view-raw-modal .modal-body").html('<textarea  style="border: none; height: 80vh; width: 100%">' + data + '</textarea>');
+                },
+                error: function () {
+                    alert("Failed to load XML file.");
+                }
+            });
+        };
 
 
         function deleteFile(filename) {
             $.ajax({
                 url: "/delete/" + filename,
                 type: "POST",
-                success: function() {
+                success: function () {
                     fetchFiles();
                 }
             });
@@ -50,20 +69,62 @@
 </script>
 
 
-<h1 class="display-4">Observate</h1>
+<h1 class="display-4">Observate V2</h1>
 <div class="jumbotron">
-    <h2>Upload file</h2>
-	<p>Command to generate nmap xml output file:</p>
+    <h2>Do a scan</h2>
+    <br>
+    <div class="card text-white bg-secondary">
+        <div class="card-body">
+            <div class="row">
+                <h4>Common commands:</h4>
+                <br>
+            </div>
+            <div class="row">
 
-    <div class="alert alert-secondary" role="alert" style="display:inline-block;">
-        <codes style="color: black;">nmap -oX out.xml -O &lt;options&gt; &lt;hosts&gt;</code>
+                <div class="col col-6">
+                    <div class="host-options">
+                        <h5>Targets:</h5>
+                        <ul>
+                            <li>IP address (e.g. 192.168.1.255)</li>
+                            <li>IP range (e.g. 192.168.1.1/24 OR 192.168.1.* OR 192.168.1.1-255)</li>
+                            <li>Network adress (e.g. scanme.nmap.org)</li>
+                            <li>Network adress range (e.g. scanme.nmap.org/24)</li>
+
+
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="options">
+                        <h5>Options</h5>
+                        <ul>
+                            <li>-sS: TCP SYN scan</li>
+                            <li>-sT: TCP connect scan</li>
+                            <li>-sV: Version detection</li>
+                            <li>-O: OS detection</li>
+                            <li>-A: Aggressive scan</li>
+                            <li>-p: Port scan</li>
+                            <li>-T4: Faster scan</li>
+                            <li>-T5: Fastest scan</li>
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+            <codes style="color: rgb(204, 204, 204);">For more information visit: <a style="color: rgb(141, 223, 255);"
+                    href="https://nmap.org/book/man.html">Nmap manual</a></code>
+        </div>
     </div>
+    <br>
+    {% include 'scan-gui.html' %}
     {% if error_message %}
     <div class="alert alert-danger" role="alert">
         Error: {{ error_message }}
     </div>
     {% endif %}
-
+</div>
+<br>
+<div class="jumbotron">
+    <h3>Or view existing scan outputs</h3>
     <form action="/upload" method="POST" enctype="multipart/form-data">
         <div class="custom-file mb-3">
             <input type="file" class="custom-file-input" id="customFile" name="file">
@@ -73,24 +134,40 @@
 
         <script>
             // Show name of the file on select
-            $(".custom-file-input").on("change", function() {
+            $(".custom-file-input").on("change", function () {
                 var fileName = $(this).val().split("\\").pop();
                 $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
             });
         </script>
-    </form>	
+    </form>
     <br>
     <br>
     <table id="files-table" class="table">
         <thead class="thead-dark">
-          <tr>
-            <th>Click to view scan results</th>
-          </tr>
+            <tr>
+                <th colspan="2">Click to view scan results</th>
+            </tr>
         </thead>
         <tbody>
-          
-        </tbody>
-      </table>
 
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade " id="view-raw-modal" tabindex="-1" role="dialog" aria-labelledby="rawModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl " role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rawModalLabel">Raw XML View</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

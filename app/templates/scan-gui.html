@@ -1,0 +1,97 @@
+<script>
+    $(document).ready(function () {
+
+        socket.on('connect', function () {
+            socket.emit('my event', { data: 'I\'m connected!' });
+        });
+
+        /* Appends data to scan progrss box */ 
+        socket.on('update output', function (data) {
+            console.log('recieved data ' + data);
+            var status = '<p>' + data + '</p>';
+            $('.status-text').append(status);
+            $('#scan-gui-card').scrollTop($('#scan-gui-card')[0].scrollHeight);
+
+        });
+
+        /* Checks whether data has been recieved, pulls up the progress box if true */ 
+        setTimeout(function () {
+            if ($.trim($(".status-text").html())) {
+                $('.scan-card').show();
+                $('#scan-btn').hide();
+
+            };
+        }, 5500);
+
+        $('#show-btn').hide();
+
+        $('.close').click(function () {
+            $('.scan-card').hide();
+            $('#show-btn').show();
+        });
+
+        $('#show-btn').click(function () {
+            $('.scan-card').show();
+            $('#show-btn').hide();
+        });
+
+        $('#scan-btn').click(function () {
+            $('.status-text').empty();
+            $('.scan-card').show();
+            var target = $('#target').val();
+            var options = $('#options').val();
+            var filename = $('#filename').val();
+            $('#scan-btn').hide();
+
+            $.ajax({
+                type: 'POST',
+                url: '/nmapscan',
+                data: { target: target, options: options, filename: filename },
+                success: function (data) {
+                    $('#scan-btn').show();
+                    $('#show-btn').hide();
+                },
+            });
+        });
+    });
+</script>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <label for="target">Target:</label>
+            <input type="text" class="form-control" id="target">
+        </div>
+        <div class="col-md-6">
+            <label for="options">Options:</label>
+            <input type="text" class="form-control" id="options">
+        </div>
+        <div class="col-md-6">
+            <label for="filename">Filename:</label>
+            <input type="text" class="form-control" id="filename"
+                placeholder="Filename (e.g scanOutput) Default: current date and time">
+        </div>
+    </div>
+    <br>
+    <div class=row>
+        <button type="button" class="btn btn-primary" id="scan-btn">Scan</button>
+        <button type="button" style="margin-left: 1%" class="btn btn-primary" id="show-btn">Show progress</button>
+    </div>
+    <br><br>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card scan-card" style="background-color: rgb(0, 0, 0); display: none;">
+                <div class="card-header">
+                    <span style="color: white;">Scan progress</span>
+                    <button type="button" class="close" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="card-body" id="scan-gui-card" style="height: 200px; overflow-y: scroll;">
+                    <div class="status-text" style="font-family: 'Courier New'; color: white;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
