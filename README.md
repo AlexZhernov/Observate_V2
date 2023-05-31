@@ -27,7 +27,7 @@ docker run -d --name observatev2 -p 80:80 observate2
 
 OR, For better performance in Network scans
 
-docker run -d --name observatev2 --network=host observate2
+docker run -d --name observatev2 --network=host observatev2
 
 ```
 
